@@ -1,0 +1,23 @@
+name: app_horario
+description: Gestión de horas diarias con eventos, tareas, avisos y estadísticas.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.3.2
+  flutter_local_notifications: 17.2.4
+  timezone: ^0.9.4
+  flutter_timezone: 3.0.1
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

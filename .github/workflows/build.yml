@@ -1,0 +1,66 @@
+name: Compilar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KEYSTORE_PASS: 65f0139903cddc103006fdca
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+
+      - name: Generar el proyecto Android
+        run: |
+          flutter create --platforms=android --org com.samix --project-name app_horario .
+          git checkout -- .
+          rm -rf test
+          flutter pub get
+          dart run tool/patch_android.dart
+
+      - name: Analizar el código
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Compilar el APK
+        run: flutter build apk --release --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }}
+
+      - name: Preparar el APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk AppHorario.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AppHorario
+          path: AppHorario.apk
+
+      - name: Publicar la versión
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Horario 1.0.${{ github.run_number }}
+          body: |
+            Descarga **AppHorario.apk** desde el móvil y ábrelo para instalarlo.
+            Si ya tienes una versión anterior, se actualiza encima sin perder los datos.
+          files: AppHorario.apk
+          make_latest: true
